@@ -6,11 +6,11 @@ LPATH=-L/opt/ibm/ILOG/CPLEX_Studio_Community221/concert/lib/x86-64_linux/static_
 
 LIBRARIES=-lconcert -lilocplex -lcplex -lpthread -ldl
 
-all: main.o
-		g++ -O3 main.o -o main.exe $(INCLUDE) $(FLAGS) $(LPATH) $(LIBRARIES)
+all: pfm.o
+		g++ -O3 pfm.o -o pfm.exe $(INCLUDE) $(FLAGS) $(LPATH) $(LIBRARIES)
 
-main.o: main.cpp
-		g++ -O3 -c main.cpp $(INCLUDE) $(FLAGS) $(LPATH) $(LIBRARIES)
+pfm.o: pfm.cpp
+		g++ -O3 -c pfm.cpp $(INCLUDE) $(FLAGS) $(LPATH) $(LIBRARIES)
 
 clean:
 	rm *.exe

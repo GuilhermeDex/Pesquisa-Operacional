@@ -10,10 +10,10 @@
 using namespace std;
 ILOSTLBEGIN
 
-#define CPLEX_TIME_LIM 3600  
+#define CPLEX_TIME_LIM 3600
 
-int N;  
-vector<vector<int>> custo;  
+int N;
+vector<vector<int>> custo;
 
 void cplex() {
     IloEnv env;
@@ -34,7 +34,7 @@ void cplex() {
     }
     model.add(IloMinimize(env, obj));
 
-    // Restricoes
+    // Restrições
     // Cada agente deve executar exatamente uma tarefa
     for (int i = 0; i < N; i++) {
         IloExpr sum(env);
@@ -45,7 +45,7 @@ void cplex() {
         sum.end();
     }
 
-    // Cada tarefa deve ser atribuida a exatamente um agente
+    // Cada tarefa deve ser atribuída a exatamente um agente
     for (int j = 0; j < N; j++) {
         IloExpr sum(env);
         for (int i = 0; i < N; i++) {
@@ -55,26 +55,50 @@ void cplex() {
         sum.end();
     }
 
+    // Informações antes da execução
+    cout << "-------- Informações da Execução ----------\n";
+    cout << "#Variáveis: " << (N * N) << "\n";
+    cout << "#Restrições: " << (2 * N) << "\n";
+    cout << "Uso de memória antes da solução: " << env.getMemoryUsage() / (1024. * 1024.) << " MB\n";
+
     cplex.setParam(IloCplex::TiLim, CPLEX_TIME_LIM);
-    cplex.setParam(IloCplex::EpGap, 0.0);  
-    cplex.setParam(IloCplex::Param::MIP::Strategy::Search, IloCplex::Traditional);  
 
+    time_t timer, timer2;
+    time(&timer);
     cplex.solve();
+    time(&timer2);
 
-    if (cplex.getStatus() == IloAlgorithm::Optimal) {
-        cout << "Solução ótima encontrada!" << endl;
-        cout << "Custo mínimo: " << cplex.getObjValue() << endl;
+    bool sol = true;
+    string status;
+    switch (cplex.getStatus()) {
+        case IloAlgorithm::Optimal:
+            status = "Optimal";
+            break;
+        case IloAlgorithm::Feasible:
+            status = "Feasible";
+            break;
+        default:
+            status = "No Solution";
+            sol = false;
+    }
 
+    cout << "\nStatus da Função Objetivo: " << status << "\n";
+    if (sol) {
+        cout << "Custo mínimo: " << cplex.getObjValue() << "\n";
+        cout << "Atribuições encontradas:\n";
         for (int i = 0; i < N; i++) {
             for (int j = 0; j < N; j++) {
-                if (cplex.getValue(x[i][j]) > 0.5) {  
-                    cout << "Agente " << i << " -> Tarefa " << j << " (Custo: " << custo[i][j] << ")" << endl;
+                if (cplex.getValue(x[i][j]) > 0.5) {
+                    cout << "Agente " << i << " -> Tarefa " << j << " (Custo: " << custo[i][j] << ")\n";
                 }
             }
         }
+        printf("Tempo de execução: %.6lf segundos\n\n", difftime(timer2, timer));
     } else {
-        cout << "Nenhuma solução ótima encontrada." << endl;
+        cout << "Nenhuma solução ótima encontrada.\n";
     }
+
+    cout << "Uso de memória após solução: " << env.getMemoryUsage() / (1024. * 1024.) << " MB\n";
 
     obj.end();
     cplex.end();
@@ -92,7 +116,7 @@ int main() {
         }
     }
 
-    cout << "Matriz de Custos Lida:" << endl;
+    cout << "Matriz de Custos Lida:\n";
     for (int i = 0; i < N; i++) {
         for (int j = 0; j < N; j++) {
             cout << custo[i][j] << " ";

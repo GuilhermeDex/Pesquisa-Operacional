@@ -1,5 +1,5 @@
 /*---------------- File: pcm.cpp  ---------------------+
-| Problema do Caminho Mínimo (PCM)                     |
+| Problema do Caminho Minimo (PCM)                     |
 |                                                      |
 | Adaptado por Guilherme Francis e Lucas Rocha         |
 +-------------------------------------------------------+ */
@@ -48,19 +48,51 @@ void cplex() {
             model.add(fluxoEntrada - fluxoSaida == 0);
     }
 
+    cout << "-------- Informacoes da Execucao ----------\n";
+    cout << "#Variaveis: " << M << "\n";
+    cout << "#Restricoes: " << N << "\n";
+    cout << "Uso de memoria antes da solucao: " << env.getMemoryUsage() / (1024. * 1024.) << " MB\n";
+
     cplex.setParam(IloCplex::TiLim, CPLEX_TIME_LIM);
+
+    time_t timer, timer2;
+    time(&timer);
     cplex.solve();
+    time(&timer2);
 
-    if (cplex.getStatus() == IloAlgorithm::Infeasible) {
-        cout << "Erro: O problema é inviável! Verifique se há um caminho possível entre origem e destino." << endl;
-        return;
+    bool sol = true;
+    string status;
+    switch (cplex.getStatus()) {
+        case IloAlgorithm::Optimal:
+            status = "Optimal";
+            break;
+        case IloAlgorithm::Feasible:
+            status = "Feasible";
+            break;
+        default:
+            status = "No Solution";
+            sol = false;
     }
 
-    cout << "Caminho mínimo encontrado! Custo: " << cplex.getObjValue() << endl;
-    for (int i = 0; i < M; i++) {
-        if (cplex.getValue(x[i]) > 0.5)
-            cout << "Aresta no caminho mínimo: " << arestas[i].origem << " -> " << arestas[i].destino << endl;
+    cout << "\nStatus da Funcao Objetivo: " << status << "\n";
+    if (sol) {
+        cout << "Custo minimo: " << cplex.getObjValue() << "\n";
+        cout << "Arestas no caminho minimo:\n";
+        for (int i = 0; i < M; i++) {
+            if (cplex.getValue(x[i]) > 0.5)
+                cout << " " << arestas[i].origem << " -> " << arestas[i].destino << " (Custo: " << arestas[i].custo << ")\n";
+        }
+        printf("Tempo de execucao: %.6lf segundos\n\n", difftime(timer2, timer));
+    } else {
+        cout << "Erro: O problema eh inviavel! Verifique se ha um caminho possivel entre origem e destino.\n";
     }
+
+    cout << "Uso de memoria apos solucao: " << env.getMemoryUsage() / (1024. * 1024.) << " MB\n";
+
+    obj.end();
+    cplex.end();
+    model.end();
+    env.end();
 }
 
 int main() {
@@ -70,6 +102,12 @@ int main() {
         cin >> arestas[i].origem >> arestas[i].destino >> arestas[i].custo;
     }
     cin >> origemFonte >> destinoDestino;
+
+    cout << "Lista de Arestas:\n";
+    for (const auto& e : arestas) {
+        cout << " " << e.origem << " -> " << e.destino << " (Custo: " << e.custo << ")\n";
+    }
+    cout << "Origem: " << origemFonte << ", Destino: " << destinoDestino << "\n\n";
 
     cplex();
     return 0;
