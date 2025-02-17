@@ -1,3 +1,9 @@
+/*---------------- File: pt.cpp  ----------------------+
+| Problema do Transporte (PT)                          |
+|                                                      |
+| Adaptado por Guilherme Francis e Lucas Rocha         |
++----------------------------------------------------+ */
+
 #include <bits/stdc++.h>
 #include <ilcplex/ilocplex.h>
 
